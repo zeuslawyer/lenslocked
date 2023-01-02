@@ -40,6 +40,18 @@ func faqHandler(w http.ResponseWriter, r *http.Request) {
 	`)
 }
 
+func getUserHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse Url Param.
+	userId := chi.URLParam(r, "userId")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	// Parse RequestID from the request's context.
+	ctx := r.Context()
+	key := ctx.Value(middleware.RequestIDKey).(string)
+
+	fmt.Fprintf(w, fmt.Sprintf("<h1>User Id is : %q and request ID was %q</h1>", userId, key))
+}
+
 // Using Chi.
 func main() {
 	r := chi.NewRouter()
@@ -49,6 +61,7 @@ func main() {
 	r.Get("/", homeHandler)
 	r.Get("/contact", contactHandler)
 	r.Get("/faq", faqHandler)
+	r.With(middleware.RequestID).Get("/users/{userId}", getUserHandler)
 	// r.NotFound(http.NotFound)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Hmmm...resource at path %q was not found :(", r.URL.Path), http.StatusNotFound)
